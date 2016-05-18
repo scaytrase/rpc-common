@@ -69,7 +69,7 @@ final class LoggableResponseCollection implements \IteratorAggregate, ResponseCo
                 ['request_hash' => spl_object_hash($request)]
             );
             $this->logger->debug(
-                sprintf("Resposne:\n%s", json_encode($response->getBody(), JSON_PRETTY_PRINT)),
+                sprintf("Response:\n%s", json_encode($response->getBody(), JSON_PRETTY_PRINT)),
                 ['request_hash' => spl_object_hash($request)]
             );
         } else {
@@ -96,7 +96,7 @@ final class LoggableResponseCollection implements \IteratorAggregate, ResponseCo
         if ($response->isSuccessful()) {
             $this->logger->info('Successful RPC call');
             $this->logger->debug(
-                sprintf("Resposne:\n%s", json_encode($response->getBody(), JSON_PRETTY_PRINT))
+                sprintf("Response:\n%s", json_encode($response->getBody(), JSON_PRETTY_PRINT))
             );
         } else {
             $this->logger->error(
