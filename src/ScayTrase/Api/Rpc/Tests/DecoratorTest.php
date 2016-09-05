@@ -25,13 +25,13 @@ class DecoratorTest extends AbstractRpcTest
             self::markTestSkipped('install psr/log in order to run these tests');
         }
 
-        $logger = self::getMock(AbstractLogger::class, ['log']);
+        $logger = self::getMockBuilder(AbstractLogger::class)->setMethods(['log'])->getMock();
         $logger->expects(self::atLeastOnce())->method('log');
 
         $rq1 = $this->getRequestMock('/test1', ['param1' => 'test']);
         $rs1 = $this->getResponseMock(['param1' => 'test']);
         /** @var RpcRequestInterface[] $requests */
-        $requests   = [$rq1];
+        $requests = [$rq1];
 
         $client = new LoggableRpcClient($this->getClientMock([$rq1], [$rs1]), $logger);
 
@@ -50,11 +50,11 @@ class DecoratorTest extends AbstractRpcTest
 
         $cache = $this->getCache();
 
-        $client = new CacheableRpcClient($this->getClientMock([$rq1], [$rs1]), $cache, 5);
+        $client   = new CacheableRpcClient($this->getClientMock([$rq1], [$rs1]), $cache, 5);
         $response = $client->invoke([$rq1])->getResponse($rq1);
         self::assertEquals($rs1, $response);
 
-        $client = new CacheableRpcClient($this->getClientMock(), $cache, 5);
+        $client   = new CacheableRpcClient($this->getClientMock(), $cache, 5);
         $response = $client->invoke([$rq2])->getResponse($rq2);
         self::assertEquals($rs1, $response);
     }
@@ -66,7 +66,7 @@ class DecoratorTest extends AbstractRpcTest
     {
         static $items = [];
         $cache = $this->prophesize(CacheItemPoolInterface::class);
-        $that = $this;
+        $that  = $this;
         $cache->getItem(Argument::type('string'))->will(function ($args) use (&$items, $that) {
             $key = $args[0];
             if (!array_key_exists($key, $items)) {

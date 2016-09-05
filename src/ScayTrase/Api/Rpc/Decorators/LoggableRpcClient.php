@@ -11,6 +11,7 @@ namespace ScayTrase\Api\Rpc\Decorators;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use ScayTrase\Api\Rpc\RpcClientInterface;
+use ScayTrase\Api\Rpc\RpcRequestInterface;
 
 final class LoggableRpcClient implements RpcClientInterface
 {
@@ -38,11 +39,13 @@ final class LoggableRpcClient implements RpcClientInterface
     /** {@inheritdoc} */
     public function invoke($calls)
     {
-        if (!is_array($calls)) {
-            $calls = [$calls];
+        /** @var RpcRequestInterface[] $loggedCalls */
+        $loggedCalls = $calls;
+        if (!is_array($loggedCalls)) {
+            $loggedCalls = [$loggedCalls];
         }
 
-        foreach ($calls as $call) {
+        foreach ($loggedCalls as $call) {
             $this->logger->debug(
                 sprintf('%s Invoking RPC method "%s"', spl_object_hash($call), $call->getMethod()),
                 json_decode(json_encode($call->getParameters()), true)
