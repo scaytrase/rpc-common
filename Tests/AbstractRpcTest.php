@@ -43,6 +43,12 @@ abstract class AbstractRpcTest extends \PHPUnit_Framework_TestCase
         return $mock->reveal();
     }
 
+    /**
+     * @param mixed  $code
+     * @param string $message
+     *
+     * @return RpcErrorInterface
+     */
     protected function getErrorMock($code, $message)
     {
         $mock = $this->prophesize(RpcErrorInterface::class);
