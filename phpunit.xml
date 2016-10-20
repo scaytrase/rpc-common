@@ -13,15 +13,16 @@
 
     <testsuites>
         <testsuite name="RPC Tests">
-            <directory>./src/</directory>
+            <directory>./Tests/</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory>./src</directory>
+            <directory>./</directory>
             <exclude>
-                <directory>./vendor</directory>
+                <directory>./Tests/</directory>
+                <directory>./vendor/</directory>
             </exclude>
         </whitelist>
     </filter>
