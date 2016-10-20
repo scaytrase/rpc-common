@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: batanov.pavel
- * Date: 18.03.2016
- * Time: 15:31
- */
 
 namespace ScayTrase\Api\Rpc\Decorators;
 
@@ -21,7 +15,10 @@ class RequestKeyExtractor
      *
      * @param $keyPrefix
      */
-    public function __construct($keyPrefix) { $this->keyPrefix = $keyPrefix; }
+    public function __construct($keyPrefix)
+    {
+        $this->keyPrefix = $keyPrefix;
+    }
 
 
     public function getKey(RpcRequestInterface $request)
@@ -33,6 +30,6 @@ class RequestKeyExtractor
 
         $stringData = json_encode($data);
 
-        return $this->keyPrefix . sha1($stringData);
+        return $this->keyPrefix.sha1($stringData);
     }
 }

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: batanov.pavel
- * Date: 18.03.2016
- * Time: 15:27
- */
 
 namespace ScayTrase\Api\Rpc\Decorators;
 
@@ -40,8 +34,7 @@ final class CacheableResponseCollection implements \IteratorAggregate, ResponseC
         array $items,
         ResponseCollectionInterface $proxiedCollection,
         $ttl
-    )
-    {
+    ) {
         $this->cache             = $cache;
         $this->extractor         = $extractor;
         $this->items             = $items;

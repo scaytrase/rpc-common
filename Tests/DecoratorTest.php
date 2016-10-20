@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: batanov.pavel
- * Date: 18.03.2016
- * Time: 15:54
- */
 
 namespace ScayTrase\Api\Rpc\Tests;
 
@@ -29,7 +23,7 @@ class DecoratorTest extends AbstractRpcTest
         $logger->expects(self::atLeastOnce())->method('log');
 
         $rq1 = $this->getRequestMock('/test1', ['param1' => 'test']);
-        $rs1 = $this->getResponseMock(['param1' => 'test']);
+        $rs1 = $this->getResponseMock(true, ['param1' => 'test']);
         /** @var RpcRequestInterface[] $requests */
         $requests = [$rq1];
 
@@ -46,7 +40,7 @@ class DecoratorTest extends AbstractRpcTest
 
         $rq1 = $this->getRequestMock('/test1', ['param1' => 'test']);
         $rq2 = $this->getRequestMock('/test1', ['param1' => 'test']);
-        $rs1 = $this->getResponseMock(['payload' => bin2hex(random_bytes(20))]);
+        $rs1 = $this->getResponseMock(true, ['payload' => bin2hex(random_bytes(20))]);
 
         $cache = $this->getCache();
 
@@ -67,29 +61,35 @@ class DecoratorTest extends AbstractRpcTest
         static $items = [];
         $cache = $this->prophesize(CacheItemPoolInterface::class);
         $that  = $this;
-        $cache->getItem(Argument::type('string'))->will(function ($args) use (&$items, $that) {
-            $key = $args[0];
-            if (!array_key_exists($key, $items)) {
-                $item = $that->prophesize(CacheItemInterface::class);
+        $cache->getItem(Argument::type('string'))->will(
+            function ($args) use (&$items, $that) {
+                $key = $args[0];
+                if (!array_key_exists($key, $items)) {
+                    $item = $that->prophesize(CacheItemInterface::class);
 
-                $item->getKey()->willReturn($key);
-                $item->isHit()->willReturn(false);
-                $item->set(Argument::any())->will(function ($args) use ($item) {
-                    $item->get()->willReturn($args[0]);
-                });
-                $item->expiresAfter(Argument::type('int'))->willReturn($item);
-                $item->expiresAfter(Argument::exact(null))->willReturn($item);
-                $item->expiresAfter(Argument::type(\DateInterval::class))->willReturn($item);
-                $item->expiresAt(Argument::type(\DateTimeInterface::class))->willReturn($item);
-                $items[$key] = $item;
+                    $item->getKey()->willReturn($key);
+                    $item->isHit()->willReturn(false);
+                    $item->set(Argument::any())->will(
+                        function ($args) use ($item) {
+                            $item->get()->willReturn($args[0]);
+                        }
+                    );
+                    $item->expiresAfter(Argument::type('int'))->willReturn($item);
+                    $item->expiresAfter(Argument::exact(null))->willReturn($item);
+                    $item->expiresAfter(Argument::type(\DateInterval::class))->willReturn($item);
+                    $item->expiresAt(Argument::type(\DateTimeInterface::class))->willReturn($item);
+                    $items[$key] = $item;
+                }
+
+                return $items[$key]->reveal();
             }
-
-            return $items[$key]->reveal();
-        });
-        $cache->save(Argument::type(CacheItemInterface::class))->will(function ($args) use (&$items) {
-            $item = $args[0];
-            $items[$item->getKey()]->isHit()->willReturn(true);
-        });
+        );
+        $cache->save(Argument::type(CacheItemInterface::class))->will(
+            function ($args) use (&$items) {
+                $item = $args[0];
+                $items[$item->getKey()]->isHit()->willReturn(true);
+            }
+        );
 
         return $cache->reveal();
     }

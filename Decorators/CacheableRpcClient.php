@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: batanov.pavel
- * Date: 18.03.2016
- * Time: 15:26
- */
 
 namespace ScayTrase\Api\Rpc\Decorators;
 
@@ -36,13 +30,13 @@ final class CacheableRpcClient implements RpcClientInterface
         RpcClientInterface $decoratedClient,
         CacheItemPoolInterface $cache,
         $ttl = null,
-        $keyPrefix = self::DEFAULT_KEY_PREFIX)
-    {
+        $keyPrefix = self::DEFAULT_KEY_PREFIX
+    ) {
         $this->decoratedClient = $decoratedClient;
         $this->cache           = $cache;
         $this->ttl             = $ttl;
 
-        $this->extractor       = new RequestKeyExtractor((string)$keyPrefix);
+        $this->extractor = new RequestKeyExtractor((string)$keyPrefix);
     }
 
     /** {@inheritdoc} */

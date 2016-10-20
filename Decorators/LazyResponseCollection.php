@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: batanov.pavel
- * Date: 08.02.2016
- * Time: 10:34
- */
 
 namespace ScayTrase\Api\Rpc\Decorators;
 
@@ -18,9 +12,9 @@ final class LazyResponseCollection implements \IteratorAggregate, ResponseCollec
     private $initialized = false;
     /** @var RpcRequestInterface[] */
     private $requests = [];
-    /** @var  RpcClientInterface */
+    /** @var RpcClientInterface */
     private $client;
-    /** @var  ResponseCollectionInterface */
+    /** @var ResponseCollectionInterface */
     private $collection;
 
     /**
@@ -28,8 +22,10 @@ final class LazyResponseCollection implements \IteratorAggregate, ResponseCollec
      *
      * @param RpcClientInterface $client
      */
-    public function __construct(RpcClientInterface $client) { $this->client = $client; }
-
+    public function __construct(RpcClientInterface $client)
+    {
+        $this->client = $client;
+    }
 
     /** {@inheritdoc} */
     public function getResponse(RpcRequestInterface $request)
@@ -39,13 +35,6 @@ final class LazyResponseCollection implements \IteratorAggregate, ResponseCollec
         }
 
         return $this->collection->getResponse($request);
-    }
-
-    private function init()
-    {
-        $this->collection  = $this->client->invoke($this->requests);
-        $this->requests    = null;
-        $this->initialized = true;
     }
 
     public function append(RpcRequestInterface $request)
@@ -70,5 +59,12 @@ final class LazyResponseCollection implements \IteratorAggregate, ResponseCollec
         }
 
         return $this->collection;
+    }
+
+    private function init()
+    {
+        $this->collection  = $this->client->invoke($this->requests);
+        $this->requests    = [];
+        $this->initialized = true;
     }
 }

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: batanov.pavel
- * Date: 18.03.2016
- * Time: 15:20
- */
 
 namespace ScayTrase\Api\Rpc\Decorators;
 
@@ -19,7 +13,7 @@ final class LoggableResponseCollection implements \IteratorAggregate, ResponseCo
     private $logger;
     /** @var  ResponseCollectionInterface */
     private $decoratedCollection;
-    /** @var string[]  */
+    /** @var string[] */
     private $loggedResponses = [];
 
     /**
@@ -53,7 +47,7 @@ final class LoggableResponseCollection implements \IteratorAggregate, ResponseCo
     }
 
     /**
-     * @param RpcRequestInterface $request
+     * @param RpcRequestInterface  $request
      * @param RpcResponseInterface $response
      */
     private function logResponseWithRequest(RpcRequestInterface $request, RpcResponseInterface $response)

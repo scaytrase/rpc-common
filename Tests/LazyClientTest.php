@@ -6,12 +6,6 @@ use ScayTrase\Api\Rpc\Decorators\LazyRpcClient;
 use ScayTrase\Api\Rpc\RpcRequestInterface;
 use ScayTrase\Api\Rpc\RpcResponseInterface;
 
-/**
- * Created by PhpStorm.
- * User: batanov.pavel
- * Date: 08.02.2016
- * Time: 10:55
- */
 class LazyClientTest extends AbstractRpcTest
 {
     public function testLazyRequets()
@@ -20,9 +14,9 @@ class LazyClientTest extends AbstractRpcTest
         $rq2 = $this->getRequestMock('/test2', ['param2' => 'test']);
         $rq3 = $this->getRequestMock('/test3', ['param3' => 'test']);
 
-        $rs1 = $this->getResponseMock(['param1' => 'test']);
-        $rs2 = $this->getResponseMock(['param2' => 'test']);
-        $rs3 = $this->getResponseMock(['param3' => 'test']);
+        $rs1 = $this->getResponseMock(true, (object)['param1' => 'test']);
+        $rs2 = $this->getResponseMock(true, (object)['param2' => 'test']);
+        $rs3 = $this->getResponseMock(true, (object)['param3' => 'test']);
 
         /** @var RpcRequestInterface[] $requests */
         $requests = [$rq1, $rq2, $rq3];
@@ -30,7 +24,6 @@ class LazyClientTest extends AbstractRpcTest
         $responses = [$rs1, $rs2, $rs3];
 
         $client = $this->getClientMock($requests, $responses);
-
 
         $lazyClient = new LazyRpcClient($client);
 
@@ -40,7 +33,6 @@ class LazyClientTest extends AbstractRpcTest
 
         self::assertEquals($c1, $c2);
         self::assertEquals($c1, $c3);
-
 
         foreach ($requests as $id => $request) {
 
