@@ -1,16 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: batanov.pavel
- * Date: 18.03.2016
- * Time: 15:56
- */
 
 namespace ScayTrase\Api\Rpc\Tests;
 
 use Prophecy\Argument;
 use ScayTrase\Api\Rpc\ResponseCollectionInterface;
 use ScayTrase\Api\Rpc\RpcClientInterface;
+use ScayTrase\Api\Rpc\RpcErrorInterface;
 use ScayTrase\Api\Rpc\RpcRequestInterface;
 use ScayTrase\Api\Rpc\RpcResponseInterface;
 
@@ -28,26 +23,37 @@ abstract class AbstractRpcTest extends \PHPUnit_Framework_TestCase
         $request->getMethod()->willReturn($method);
         $request->getParameters()->willReturn((object)$params);
 
-
         return $request->reveal();
     }
 
     /**
-     * @param array $data
+     * @param bool                       $success
+     * @param \stdClass|array|null|mixed $body
+     * @param RpcErrorInterface          $error
      *
      * @return RpcResponseInterface
      */
-    protected function getResponseMock(array $data = [])
+    protected function getResponseMock($success = true, $body = null, RpcErrorInterface $error = null)
     {
-        $response = $this->prophesize(RpcResponseInterface::class);
-        $response->isSuccessful()->willReturn(true);
-        $response->getBody()->willReturn((object)$data);
+        $mock = $this->prophesize(RpcResponseInterface::class);
+        $mock->isSuccessful()->willReturn($success);
+        $mock->getError()->willReturn($success ? null : $error);
+        $mock->getBody()->willReturn($success ? $body : null);
 
-        return $response->reveal();
+        return $mock->reveal();
+    }
+
+    protected function getErrorMock($code, $message)
+    {
+        $mock = $this->prophesize(RpcErrorInterface::class);
+        $mock->getCode()->willReturn($code);
+        $mock->getMessage()->willReturn($message);
+
+        return $mock->reveal();
     }
 
     /**
-     * @param RpcRequestInterface[] $requests
+     * @param RpcRequestInterface[]  $requests
      * @param RpcResponseInterface[] $responses
      *
      * @return \PHPUnit_Framework_MockObject_MockObject|RpcClientInterface
@@ -57,16 +63,19 @@ abstract class AbstractRpcTest extends \PHPUnit_Framework_TestCase
         self::assertEquals(count($requests), count($responses));
 
         $client = $this->prophesize(RpcClientInterface::class);
-        $that = $this;
-        $client->invoke(Argument::type('array'))->will(function ($args) use ($that, $requests, $responses) {
-            $collection = $that->prophesize(ResponseCollectionInterface::class);
-            foreach ($requests as $key => $request) {
-                if (in_array($request, $args[0], true)) {
-                    $collection->getResponse(Argument::exact($request))->willReturn($responses[$key]);
+        $that   = $this;
+        $client->invoke(Argument::type('array'))->will(
+            function ($args) use ($that, $requests, $responses) {
+                $collection = $that->prophesize(ResponseCollectionInterface::class);
+                foreach ($requests as $key => $request) {
+                    if (in_array($request, $args[0], true)) {
+                        $collection->getResponse(Argument::exact($request))->willReturn($responses[$key]);
+                    }
                 }
+
+                return $collection->reveal();
             }
-            return $collection->reveal();
-        });
+        );
 
         return $client->reveal();
     }

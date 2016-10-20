@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: batanov.pavel
- * Date: 18.03.2016
- * Time: 15:16
- */
 
 namespace ScayTrase\Api\Rpc\Decorators;
 
