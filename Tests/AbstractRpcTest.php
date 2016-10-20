@@ -56,7 +56,7 @@ abstract class AbstractRpcTest extends \PHPUnit_Framework_TestCase
      * @param RpcRequestInterface[]  $requests
      * @param RpcResponseInterface[] $responses
      *
-     * @return \PHPUnit_Framework_MockObject_MockObject|RpcClientInterface
+     * @return RpcClientInterface
      */
     protected function getClientMock(array $requests = [], array $responses = [])
     {
