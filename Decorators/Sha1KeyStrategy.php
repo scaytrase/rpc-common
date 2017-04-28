@@ -5,21 +5,20 @@ namespace ScayTrase\Api\Rpc\Decorators;
 use ScayTrase\Api\Rpc\RpcRequestInterface;
 
 /** @internal */
-class RequestKeyExtractor
+final class Sha1KeyStrategy implements CacheKeyStrategyInterface
 {
-    /** @var  string */
+    /** @var string */
     private $keyPrefix;
 
     /**
-     * RequestKeyExtractor constructor.
+     * Sha1KeyStrategy constructor.
      *
-     * @param $keyPrefix
+     * @param string $keyPrefix
      */
     public function __construct($keyPrefix)
     {
         $this->keyPrefix = $keyPrefix;
     }
-
 
     public function getKey(RpcRequestInterface $request)
     {

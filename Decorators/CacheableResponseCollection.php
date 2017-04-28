@@ -11,8 +11,8 @@ final class CacheableResponseCollection implements \IteratorAggregate, ResponseC
 {
     /** @var  CacheItemPoolInterface */
     private $cache;
-    /** @var  RequestKeyExtractor */
-    private $extractor;
+    /** @var  CacheKeyStrategyInterface */
+    private $keyStrategy;
     /** @var  array */
     private $items;
     /** @var  ResponseCollectionInterface */
@@ -24,29 +24,29 @@ final class CacheableResponseCollection implements \IteratorAggregate, ResponseC
      * CacheableResponseCollection constructor.
      *
      * @param CacheItemPoolInterface      $cache
-     * @param RequestKeyExtractor         $extractor
+     * @param CacheKeyStrategyInterface   $keyStrategy
      * @param array                       $items
      * @param ResponseCollectionInterface $proxiedCollection
+     * @param int|null                    $ttl
      */
     public function __construct(
         CacheItemPoolInterface $cache,
-        RequestKeyExtractor $extractor,
+        CacheKeyStrategyInterface $keyStrategy,
         array $items,
         ResponseCollectionInterface $proxiedCollection,
         $ttl
     ) {
         $this->cache             = $cache;
-        $this->extractor         = $extractor;
+        $this->keyStrategy       = $keyStrategy;
         $this->items             = $items;
         $this->proxiedCollection = $proxiedCollection;
         $this->ttl               = $ttl ?: null;
     }
 
-
     /** {@inheritdoc} */
     public function getResponse(RpcRequestInterface $request)
     {
-        $key = $this->extractor->getKey($request);
+        $key = $this->keyStrategy->getKey($request);
 
         /** @var CacheItemInterface $item */
         $item = $this->items[$key]['item'];

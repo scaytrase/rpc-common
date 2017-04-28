@@ -2,6 +2,7 @@
 
 namespace ScayTrase\Api\Rpc\Tests;
 
+use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Psr\Cache\CacheItemInterface;
 use Psr\Cache\CacheItemPoolInterface;
@@ -11,8 +12,10 @@ use ScayTrase\Api\Rpc\Decorators\CacheableRpcClient;
 use ScayTrase\Api\Rpc\Decorators\LoggableRpcClient;
 use ScayTrase\Api\Rpc\RpcRequestInterface;
 
-class DecoratorTest extends AbstractRpcTest
+final class DecoratorTest extends TestCase
 {
+    use RpcRequestTrait;
+
     public function testLoggableClient()
     {
         if (!interface_exists(LoggerInterface::class)) {
