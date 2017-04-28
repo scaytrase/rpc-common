@@ -18,16 +18,12 @@ final class LoggableRpcClient implements RpcClientInterface
      * LoggableRpcClient constructor.
      *
      * @param RpcClientInterface $decoratedClient
-     * @param LoggerInterface    $logger
+     * @param LoggerInterface $logger
      */
     public function __construct(RpcClientInterface $decoratedClient, LoggerInterface $logger = null)
     {
         $this->decoratedClient = $decoratedClient;
-        $this->logger          = $logger;
-
-        if (null === $this->logger) {
-            $this->logger = new NullLogger();
-        }
+        $this->logger = $logger ?: new NullLogger();
     }
 
     /** {@inheritdoc} */

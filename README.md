@@ -17,6 +17,7 @@ client implementation (may not be real batch)
   * RPC request (call)
   * RPC response (result)
   * RPC error
+  
 ## Decorators
   * Lazy client decorator
   * Loggable client decorator

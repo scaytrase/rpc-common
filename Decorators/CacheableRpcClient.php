@@ -44,7 +44,9 @@ final class CacheableRpcClient implements RpcClientInterface
     /** {@inheritdoc} */
     public function invoke($calls)
     {
+        $isArray = true;
         if (!is_array($calls)) {
+            $isArray = false;
             $calls = [$calls];
         }
 
@@ -61,7 +63,7 @@ final class CacheableRpcClient implements RpcClientInterface
         }
 
         // Prevent batch calls when not necessary
-        if (count($proxiedRequests) === 1 && !is_array($calls)) {
+        if (count($proxiedRequests) === 1 && !$isArray) {
             $proxiedRequests = array_shift($proxiedRequests);
         }
 

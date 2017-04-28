@@ -30,7 +30,7 @@ final class LazyResponseCollection implements \IteratorAggregate, ResponseCollec
     /** {@inheritdoc} */
     public function getResponse(RpcRequestInterface $request)
     {
-        if (!$this->initialized) {
+        if (!$this->isFrozen()) {
             $this->init();
         }
 
@@ -54,7 +54,7 @@ final class LazyResponseCollection implements \IteratorAggregate, ResponseCollec
     /** {@inheritdoc} */
     public function getIterator()
     {
-        if (!$this->initialized) {
+        if (!$this->isFrozen()) {
             $this->init();
         }
 
