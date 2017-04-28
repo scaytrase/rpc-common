@@ -2,12 +2,15 @@
 
 namespace ScayTrase\Api\Rpc\Tests;
 
+use PHPUnit\Framework\TestCase;
 use ScayTrase\Api\Rpc\Decorators\LazyRpcClient;
 use ScayTrase\Api\Rpc\RpcRequestInterface;
 use ScayTrase\Api\Rpc\RpcResponseInterface;
 
-class LazyClientTest extends AbstractRpcTest
+final class LazyClientTest extends TestCase
 {
+    use RpcRequestTrait;
+
     public function testLazyRequets()
     {
         $rq1 = $this->getRequestMock('/test1', ['param1' => 'test']);

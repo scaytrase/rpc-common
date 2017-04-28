@@ -9,34 +9,36 @@ final class CacheableRpcClient implements RpcClientInterface
 {
     const DEFAULT_KEY_PREFIX = 'rpc_client_cache';
 
-    /** @var  CacheItemPoolInterface */
+    /** @var CacheItemPoolInterface */
     private $cache;
-    /** @var  RpcClientInterface */
+    /** @var RpcClientInterface */
     private $decoratedClient;
-    /** @var  RequestKeyExtractor */
-    private $extractor;
+    /** @var CacheKeyStrategyInterface */
+    private $keyStrategy;
     /** @var int|null */
     private $ttl;
 
     /**
      * CacheableRpcClient constructor.
      *
-     * @param RpcClientInterface     $decoratedClient
-     * @param CacheItemPoolInterface $cache
-     * @param int|null               $ttl
-     * @param string                 $keyPrefix
+     * @param RpcClientInterface               $decoratedClient
+     * @param CacheItemPoolInterface           $cache
+     * @param int|null                         $ttl
+     * @param CacheKeyStrategyInterface|string $strategy
      */
     public function __construct(
         RpcClientInterface $decoratedClient,
         CacheItemPoolInterface $cache,
         $ttl = null,
-        $keyPrefix = self::DEFAULT_KEY_PREFIX
+        $strategy = self::DEFAULT_KEY_PREFIX
     ) {
         $this->decoratedClient = $decoratedClient;
         $this->cache           = $cache;
         $this->ttl             = $ttl;
 
-        $this->extractor = new RequestKeyExtractor((string)$keyPrefix);
+        if (!$strategy instanceof CacheKeyStrategyInterface) {
+            $this->keyStrategy = new Sha1KeyStrategy((string)$strategy);
+        }
     }
 
     /** {@inheritdoc} */
@@ -49,7 +51,7 @@ final class CacheableRpcClient implements RpcClientInterface
         $items           = [];
         $proxiedRequests = [];
         foreach ($calls as $call) {
-            $key                    = $this->extractor->getKey($call);
+            $key                    = $this->keyStrategy->getKey($call);
             $item                   = $this->cache->getItem($key);
             $items[$key]['request'] = $call;
             $items[$key]['item']    = $item;
@@ -65,7 +67,7 @@ final class CacheableRpcClient implements RpcClientInterface
 
         return new CacheableResponseCollection(
             $this->cache,
-            $this->extractor,
+            $this->keyStrategy,
             $items,
             $this->decoratedClient->invoke($proxiedRequests),
             $this->ttl

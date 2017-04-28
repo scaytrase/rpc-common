@@ -2,12 +2,15 @@
 
 namespace Scaytrase\Api\Rpc\Tests;
 
+use PHPUnit\Framework\TestCase;
 use ScayTrase\Api\Rpc\RpcRequestInterface;
 use ScayTrase\Api\Rpc\Test\MockClientException;
 use ScayTrase\Api\Rpc\Test\RpcMockClient;
 
-class RpcMockClientTest extends AbstractRpcTest
+final class RpcMockClientTest extends TestCase
 {
+    use RpcRequestTrait;
+
     public function testClientReturnsResponse()
     {
         $client = new RpcMockClient();
