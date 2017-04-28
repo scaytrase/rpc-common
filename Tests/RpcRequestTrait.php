@@ -13,7 +13,7 @@ trait RpcRequestTrait
 {
     /**
      * @param string $method
-     * @param array  $params
+     * @param array $params
      *
      * @return RpcRequestInterface
      */
@@ -27,9 +27,9 @@ trait RpcRequestTrait
     }
 
     /**
-     * @param bool                       $success
+     * @param bool $success
      * @param \stdClass|array|null|mixed $body
-     * @param RpcErrorInterface          $error
+     * @param RpcErrorInterface $error
      *
      * @return RpcResponseInterface
      */
@@ -44,7 +44,7 @@ trait RpcRequestTrait
     }
 
     /**
-     * @param mixed  $code
+     * @param mixed $code
      * @param string $message
      *
      * @return RpcErrorInterface
@@ -59,7 +59,7 @@ trait RpcRequestTrait
     }
 
     /**
-     * @param RpcRequestInterface[]  $requests
+     * @param RpcRequestInterface[] $requests
      * @param RpcResponseInterface[] $responses
      *
      * @return RpcClientInterface
@@ -69,15 +69,38 @@ trait RpcRequestTrait
         self::assertEquals(count($requests), count($responses));
 
         $client = $this->prophesize(RpcClientInterface::class);
-        $that   = $this;
+        $that = $this;
         $client->invoke(Argument::type('array'))->will(
             function ($args) use ($that, $requests, $responses) {
                 $collection = $that->prophesize(ResponseCollectionInterface::class);
+                $collection->willImplement(\IteratorAggregate::class);
+                $cR = [];
                 foreach ($requests as $key => $request) {
                     if (in_array($request, $args[0], true)) {
                         $collection->getResponse(Argument::exact($request))->willReturn($responses[$key]);
+                        $cR[] = $responses[$key];
                     }
                 }
+
+                $collection->getIterator()->willReturn(new \ArrayIterator($cR));
+
+                return $collection->reveal();
+            }
+        );
+
+        $client->invoke(Argument::type(RpcRequestInterface::class))->will(
+            function ($args) use ($that, $requests, $responses) {
+                $collection = $that->prophesize(ResponseCollectionInterface::class);
+                $collection->willImplement(\IteratorAggregate::class);
+                $cR = [];
+                foreach ($requests as $key => $request) {
+                    if ($request === $args[0]) {
+                        $collection->getResponse(Argument::exact($request))->willReturn($responses[$key]);
+                        $cR[] = $responses[$key];
+                    }
+                }
+
+                $collection->getIterator()->willReturn(new \ArrayIterator($cR));
 
                 return $collection->reveal();
             }

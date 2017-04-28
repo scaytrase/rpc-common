@@ -1,6 +1,6 @@
 <?php
 
-namespace Scaytrase\Api\Rpc\Tests;
+namespace ScayTrase\Api\Rpc\Tests;
 
 use PHPUnit\Framework\TestCase;
 use ScayTrase\Api\Rpc\RpcRequestInterface;
@@ -15,11 +15,22 @@ final class RpcMockClientTest extends TestCase
     {
         $client = new RpcMockClient();
         $client->push($this->getResponseMock(true, 5));
-        $request  = $this->getRequestMock('test');
+        $request = $this->getRequestMock('test');
         $response = $client->invoke($request)->getResponse($request);
         self::assertTrue($response->isSuccessful());
         self::assertNull($response->getError());
         self::assertSame(5, $response->getBody());
+    }
+
+    public function testCounting()
+    {
+        $client = new RpcMockClient();
+        self::assertCount(0, $client);
+        $client->push($this->getResponseMock(true, 5));
+        $request = $this->getRequestMock('test');
+        self::assertCount(1, $client);
+        $response = $client->invoke($request)->getResponse($request);
+        self::assertCount(0, $client);
     }
 
     /**
@@ -38,6 +49,51 @@ final class RpcMockClientTest extends TestCase
         $client->invoke($request)->getResponse($request);
     }
 
+    public function testClientThrowsFilteredException()
+    {
+        $client = new RpcMockClient();
+        $request = $this->getRequestMock('test');
+        $response = $this->getResponseMock(true, 5);
+        $client->push(
+            $response,
+            function () {
+                return false;
+            }
+        );
+
+        try {
+            $client->invoke($request);
+        } catch (MockClientException $exception) {
+            self::assertEquals('Request structure declined by filter', $exception->getMessage());
+            self::assertEquals($response, $exception->getResponse());
+            self::assertEquals($request, $exception->getRequest());
+        }
+    }
+
+    /**
+     * @expectedException \OutOfBoundsException
+     * @expectedExceptionMessage Request is not valid
+     */
+    public function testClientThrowsOobeException()
+    {
+        $client = new RpcMockClient();
+        $request = $this->getRequestMock('test');
+        $response = $this->getResponseMock(true, 5);
+        $client->push($response);
+
+        $c1 = $client->invoke($request);
+
+        try {
+            $client->invoke($request);
+        } catch (MockClientException $exception) {
+            self::assertEquals('Mock queue is empty while calling "test"', $exception->getMessage());
+            self::assertEquals($request, $exception->getRequest());
+            self::assertNull($exception->getResponse());
+        }
+
+        $c1->getResponse($this->getRequestMock('test'));
+    }
+
     public function testClientReturnsMultipleResponses()
     {
         $client = new RpcMockClient();
@@ -50,9 +106,9 @@ final class RpcMockClientTest extends TestCase
             }
         );
         self::assertCount(3, $client->getQueue());
-        $request1  = $this->getRequestMock('test');
-        $request2  = $this->getRequestMock('test2');
-        $request3  = $this->getRequestMock('entity');
+        $request1 = $this->getRequestMock('test');
+        $request2 = $this->getRequestMock('test2');
+        $request3 = $this->getRequestMock('entity');
         $response1 = $client->invoke($request1)->getResponse($request1);
         self::assertCount(2, $client->getQueue());
         self::assertTrue($response1->isSuccessful());
