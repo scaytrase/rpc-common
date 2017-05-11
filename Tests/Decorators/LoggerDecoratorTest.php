@@ -3,7 +3,8 @@
 namespace ScayTrase\Api\Rpc\Tests\Decorators;
 
 use PHPUnit\Framework\TestCase;
-use Psr\Log\AbstractLogger;
+use PHPUnit_Framework_MockObject_Matcher_Invocation as InvocationExpectation;
+use Psr\Log\LoggerInterface;
 use ScayTrase\Api\Rpc\Decorators\LoggableRpcClient;
 use ScayTrase\Api\Rpc\Tests\RpcRequestTrait;
 
@@ -13,9 +14,28 @@ final class LoggerDecoratorTest extends TestCase
 
     public function testLoggingSuccessfulResponseArray()
     {
-        $rq1 = $this->getRequestMock('/test1', ['param1' => 'test']);
-        $rs1 = $this->getResponseMock(true, ['param1' => 'test']);
-        $client = new LoggableRpcClient($this->getClientMock([$rq1], [$rs1]), $this->createLoggerMock());
+        $rq1    = $this->getRequestMock('/test1', ['param1' => 'test']);
+        $rs1    = $this->getResponseMock(true, ['param1' => 'test']);
+        $client =
+            new LoggableRpcClient($this->getClientMock([$rq1], [$rs1]), $this->createLoggerMock(self::atLeastOnce()));
+
+        $collection = $client->invoke([$rq1]);
+        self::assertEquals($rs1, $collection->getResponse($rq1));
+    }
+
+    public function testDebugFlagEnabledDebug()
+    {
+        $rq1    = $this->getRequestMock('/test1', ['param1' => 'test']);
+        $rs1    = $this->getResponseMock(true, ['param1' => 'test']);
+        $client =
+            new LoggableRpcClient(
+                $this->getClientMock([$rq1], [$rs1]),
+                $this->createLoggerMock(
+                    self::atLeastOnce(),
+                    self::atLeastOnce()
+                ),
+                true
+            );
 
         $collection = $client->invoke([$rq1]);
         self::assertEquals($rs1, $collection->getResponse($rq1));
@@ -23,9 +43,10 @@ final class LoggerDecoratorTest extends TestCase
 
     public function testLoggingFailedResponseArray()
     {
-        $rq1 = $this->getRequestMock('/test2', ['param1' => 'test']);
-        $rs1 = $this->getResponseMock(false, null, $this->getErrorMock(0, 'invalid'));
-        $client = new LoggableRpcClient($this->getClientMock([$rq1], [$rs1]), $this->createLoggerMock());
+        $rq1    = $this->getRequestMock('/test2', ['param1' => 'test']);
+        $rs1    = $this->getResponseMock(false, null, $this->getErrorMock(0, 'invalid'));
+        $client =
+            new LoggableRpcClient($this->getClientMock([$rq1], [$rs1]), $this->createLoggerMock(self::atLeastOnce()));
 
         $collection = $client->invoke([$rq1]);
         self::assertEquals($rs1, $collection->getResponse($rq1));
@@ -33,9 +54,10 @@ final class LoggerDecoratorTest extends TestCase
 
     public function testLoggingSuccessfulResponseIterator()
     {
-        $rq1 = $this->getRequestMock('/test1', ['param1' => 'test']);
-        $rs1 = $this->getResponseMock(true, ['param1' => 'test']);
-        $client = new LoggableRpcClient($this->getClientMock([$rq1], [$rs1]), $this->createLoggerMock());
+        $rq1    = $this->getRequestMock('/test1', ['param1' => 'test']);
+        $rs1    = $this->getResponseMock(true, ['param1' => 'test']);
+        $client =
+            new LoggableRpcClient($this->getClientMock([$rq1], [$rs1]), $this->createLoggerMock(self::atLeastOnce()));
 
         $collection = $client->invoke($rq1);
         foreach ($collection as $response) {
@@ -52,9 +74,10 @@ final class LoggerDecoratorTest extends TestCase
 
     public function testLoggingFailedResponseIterator()
     {
-        $rq1 = $this->getRequestMock('/test2', ['param1' => 'test']);
-        $rs1 = $this->getResponseMock(false, null, $this->getErrorMock(0, 'invalid'));
-        $client = new LoggableRpcClient($this->getClientMock([$rq1], [$rs1]), $this->createLoggerMock());
+        $rq1    = $this->getRequestMock('/test2', ['param1' => 'test']);
+        $rs1    = $this->getResponseMock(false, null, $this->getErrorMock(0, 'invalid'));
+        $client =
+            new LoggableRpcClient($this->getClientMock([$rq1], [$rs1]), $this->createLoggerMock(self::atLeastOnce()));
 
         $collection = $client->invoke($rq1);
         foreach ($collection as $response) {
@@ -63,12 +86,20 @@ final class LoggerDecoratorTest extends TestCase
     }
 
     /**
+     * @param InvocationExpectation $infoExpectation
+     * @param InvocationExpectation $debugExpectation
+     *
      * @return \PHPUnit_Framework_MockObject_MockObject
      */
-    private function createLoggerMock()
-    {
-        $logger = self::getMockBuilder(AbstractLogger::class)->setMethods(['log'])->getMock();
-        $logger->expects(self::atLeastOnce())->method('log');
+    private function createLoggerMock(
+        InvocationExpectation $infoExpectation = null,
+        InvocationExpectation $debugExpectation = null
+    ) {
+        $infoExpectation  = $infoExpectation ?: self::never();
+        $debugExpectation = $debugExpectation ?: self::never();
+        $logger           = self::getMockBuilder(LoggerInterface::class)->getMock();
+        $logger->expects($infoExpectation)->method('info');
+        $logger->expects($debugExpectation)->method('debug');
 
         return $logger;
     }

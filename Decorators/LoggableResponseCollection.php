@@ -15,17 +15,26 @@ final class LoggableResponseCollection implements \IteratorAggregate, ResponseCo
     private $decoratedCollection;
     /** @var string[] */
     private $loggedResponses = [];
+    /**
+     * @var bool
+     */
+    private $debug;
 
     /**
      * LoggableResponseCollection constructor.
      *
      * @param ResponseCollectionInterface $decoratedCollection
      * @param LoggerInterface             $logger
+     * @param bool                        $debug
      */
-    public function __construct(ResponseCollectionInterface $decoratedCollection, LoggerInterface $logger)
-    {
+    public function __construct(
+        ResponseCollectionInterface $decoratedCollection,
+        LoggerInterface $logger,
+        $debug = false
+    ) {
         $this->decoratedCollection = $decoratedCollection;
         $this->logger              = $logger;
+        $this->debug               = $debug;
     }
 
     /** {@inheritdoc} */
@@ -62,10 +71,12 @@ final class LoggableResponseCollection implements \IteratorAggregate, ResponseCo
                 sprintf('Method "%s" call was successful', $request->getMethod()),
                 ['request_hash' => spl_object_hash($request)]
             );
-            $this->logger->debug(
-                sprintf("Response:\n%s", json_encode($response->getBody(), JSON_PRETTY_PRINT)),
-                ['request_hash' => spl_object_hash($request)]
-            );
+            if ($this->debug) {
+                $this->logger->debug(
+                    sprintf("Response:\n%s", json_encode($response->getBody(), JSON_PRETTY_PRINT)),
+                    ['request_hash' => spl_object_hash($request)]
+                );
+            }
         } else {
             $this->logger->info(
                 sprintf('Method "%s" call was failed', $request->getMethod()),
@@ -89,9 +100,11 @@ final class LoggableResponseCollection implements \IteratorAggregate, ResponseCo
 
         if ($response->isSuccessful()) {
             $this->logger->info('Successful RPC call');
-            $this->logger->debug(
-                sprintf("Response:\n%s", json_encode($response->getBody(), JSON_PRETTY_PRINT))
-            );
+            if ($this->debug) {
+                $this->logger->debug(
+                    sprintf("Response:\n%s", json_encode($response->getBody(), JSON_PRETTY_PRINT))
+                );
+            }
         } else {
             $this->logger->error(
                 sprintf('RPC Error %s: %s', $response->getError()->getCode(), $response->getError()->getMessage())

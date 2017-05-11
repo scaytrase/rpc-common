@@ -13,17 +13,23 @@ final class LoggableRpcClient implements RpcClientInterface
     private $logger;
     /** @var  RpcClientInterface */
     private $decoratedClient;
+    /**
+     * @var bool
+     */
+    private $debug;
 
     /**
      * LoggableRpcClient constructor.
      *
      * @param RpcClientInterface $decoratedClient
-     * @param LoggerInterface $logger
+     * @param LoggerInterface    $logger
+     * @param bool               $debug
      */
-    public function __construct(RpcClientInterface $decoratedClient, LoggerInterface $logger = null)
+    public function __construct(RpcClientInterface $decoratedClient, LoggerInterface $logger = null, $debug = false)
     {
         $this->decoratedClient = $decoratedClient;
-        $this->logger = $logger ?: new NullLogger();
+        $this->logger          = $logger ?: new NullLogger();
+        $this->debug           = $debug;
     }
 
     /** {@inheritdoc} */
@@ -36,12 +42,26 @@ final class LoggableRpcClient implements RpcClientInterface
         }
 
         foreach ($loggedCalls as $call) {
-            $this->logger->debug(
+            $this->logger->info(
                 sprintf('%s Invoking RPC method "%s"', spl_object_hash($call), $call->getMethod()),
-                json_decode(json_encode($call->getParameters()), true)
+                $this->getContext($call)
             );
         }
 
-        return new LoggableResponseCollection($this->decoratedClient->invoke($calls), $this->logger);
+        return new LoggableResponseCollection($this->decoratedClient->invoke($calls), $this->logger, $this->debug);
+    }
+
+    /**
+     * @param $call
+     *
+     * @return array
+     */
+    private function getContext($call)
+    {
+        if (!$this->debug) {
+            return [];
+        }
+
+        return json_decode(json_encode($call->getParameters()), true);
     }
 }
