@@ -26,6 +26,14 @@ final class ExtraLazyResponseCollection implements \IteratorAggregate, ResponseC
         return $this->collection;
     }
 
+    /**
+     * @return LazyResponseCollection
+     */
+    public function getInnerCollection()
+    {
+        return $this->collection;
+    }
+
     /** {@inheritdoc} */
     public function getResponse(RpcRequestInterface $request)
     {
