@@ -26,7 +26,7 @@ final class ExtraLazyRpcClient implements RpcClientInterface
     {
         $collection = $this->client->invoke($calls);
 
-        if (!$this->lazyCollection || $collection->isFrozen()) {
+        if (!$this->lazyCollection || $this->lazyCollection->getInnerCollection() !== $collection) {
             $this->lazyCollection = new ExtraLazyResponseCollection($collection);
         }
 

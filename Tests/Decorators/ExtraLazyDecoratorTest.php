@@ -17,15 +17,19 @@ final class ExtraLazyDecoratorTest extends TestCase
     /** @var RpcMockClient */
     private $client;
 
+    /** @var ExtraLazyRpcClient */
+    private $extraLazyRpcClient;
+
     public function setUp()
     {
-        $this->client = new RpcMockClient();
+        $this->client             = new RpcMockClient();
+        $this->extraLazyRpcClient = new ExtraLazyRpcClient($this->client);
     }
 
     public function tearDown()
     {
-        self::assertCount(0, $this->client);
-        $this->client = null;
+        $this->client             = null;
+        $this->extraLazyRpcClient = null;
     }
 
     /**
@@ -46,19 +50,13 @@ final class ExtraLazyDecoratorTest extends TestCase
         /** @var RpcResponseInterface[] $responses */
         $responses = [$rs1, $rs2, $rs3];
 
-        $client = $this->client;
-        $client->push($rs1);
-        $client->push($rs2);
-        $client->push($rs3);
+        $this->client->push($rs1);
+        $this->client->push($rs2);
+        $this->client->push($rs3);
 
-        $lazyClient = new ExtraLazyRpcClient($client);
-
-        $c1 = $lazyClient->invoke($rq1);
-        self::assertCount(3, $client);
-        $c2 = $lazyClient->invoke($rq2);
-        self::assertCount(3, $client);
-        $c3 = $lazyClient->invoke($rq3);
-        self::assertCount(3, $client);
+        $c1 = $this->extraLazyRpcClient->invoke($rq1);
+        $c2 = $this->extraLazyRpcClient->invoke($rq2);
+        $c3 = $this->extraLazyRpcClient->invoke($rq3);
 
         self::assertEquals($c1, $c2);
         self::assertEquals($c1, $c3);
@@ -81,6 +79,8 @@ final class ExtraLazyDecoratorTest extends TestCase
             self::assertEquals($c1->getResponse($rs)->getError(), $responses[$id]->getError());
             self::assertEquals($c1->getResponse($rs)->getBody(), $responses[$id]->getBody());
         }
+
+        self::assertCount(0, $this->client);
     }
 
     public function testCollectionIteratorInvokesProxy()
@@ -97,5 +97,24 @@ final class ExtraLazyDecoratorTest extends TestCase
             self::assertEquals($response->getError(), $responses[$id]->getError());
             self::assertEquals($response->getBody(), $responses[$id]->getBody());
         }
+
+        self::assertCount(0, $this->client);
+    }
+
+    public function testSameCollections()
+    {
+        list($requests, $responses, $c1) = $this->getCollection();
+        list($requests, $responses, $c2) = $this->getCollection();
+
+        self::assertSame($c1, $c2);
+    }
+
+    public function testDifferentCollections()
+    {
+        list($requests, $responses, $c1) = $this->getCollection();
+        $current = (new \IteratorIterator($c1))->current();
+        list($requests, $responses, $c2) = $this->getCollection();
+
+        self::assertNotSame($c1, $c2);
     }
 }
